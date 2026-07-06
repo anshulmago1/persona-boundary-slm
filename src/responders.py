@@ -70,9 +70,12 @@ class HFResponder(Responder):
         base_model: str,
         adapter_path: Optional[str] = None,
         label: Optional[str] = None,
-        max_new_tokens: int = 400,
+        max_new_tokens: Optional[int] = None,
         temperature: float = 0.7,
     ):
+        # Allow an env cap so slow local (MPS) eval can shorten generations.
+        if max_new_tokens is None:
+            max_new_tokens = int(os.getenv("HF_MAX_NEW_TOKENS", "400"))
         self.base_model = base_model
         self.adapter_path = adapter_path
         self.label = label or ("tuned" if adapter_path else "base-prompted")
@@ -106,19 +109,22 @@ class HFResponder(Responder):
             {"role": "system", "content": persona.render_system_prompt()},
             {"role": "user", "content": question},
         ]
-        inputs = self._tokenizer.apply_chat_template(
+        enc = self._tokenizer.apply_chat_template(
             messages, add_generation_prompt=True, return_tensors="pt",
+            return_dict=True,
             enable_thinking=False,  # Qwen3: no <think> block; stay in-character directly
-        ).to(self._model.device)
+        )
+        enc = {k: v.to(self._model.device) for k, v in enc.items()}
+        input_len = enc["input_ids"].shape[-1]
         with torch.no_grad():
             out = self._model.generate(
-                inputs,
+                **enc,
                 max_new_tokens=self.max_new_tokens,
                 do_sample=self.temperature > 0,
                 temperature=max(self.temperature, 1e-5),
                 pad_token_id=self._tokenizer.eos_token_id,
             )
-        gen = out[0][inputs.shape[-1]:]
+        gen = out[0][input_len:]
         return self._tokenizer.decode(gen, skip_special_tokens=True).strip()
 
 

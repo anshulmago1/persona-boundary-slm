@@ -104,19 +104,22 @@ class HFChatBackend(ChatBackend):
             messages.append({"role": "assistant", "content": a})
         messages.append({"role": "user", "content": user})
 
-        inputs = self._tok.apply_chat_template(
+        enc = self._tok.apply_chat_template(
             messages, add_generation_prompt=True, return_tensors="pt",
+            return_dict=True,
             enable_thinking=False,  # Qwen3: no <think> block; stay in-character directly
-        ).to(self._model.device)
+        )
+        enc = {k: v.to(self._model.device) for k, v in enc.items()}
+        input_len = enc["input_ids"].shape[-1]
         with torch.no_grad():
             out = self._model.generate(
-                inputs,
+                **enc,
                 max_new_tokens=self.max_new_tokens,
                 do_sample=self.temperature > 0,
                 temperature=max(self.temperature, 1e-5),
                 pad_token_id=self._tok.eos_token_id,
             )
-        return self._tok.decode(out[0][inputs.shape[-1]:], skip_special_tokens=True).strip()
+        return self._tok.decode(out[0][input_len:], skip_special_tokens=True).strip()
 
 
 class OpenAIChatBackend(ChatBackend):

@@ -206,8 +206,9 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
         )
         model_kwargs["torch_dtype"] = compute_dtype
     else:
-        # MPS / CPU: no bitsandbytes. Plain LoRA; bf16 on MPS, fp32 on CPU.
-        model_kwargs["torch_dtype"] = torch.bfloat16 if device == "mps" else torch.float32
+        # MPS / CPU: no bitsandbytes and no mixed precision — train in fp32 for stability
+        # (MPS bf16 optimizer paths are flaky).
+        model_kwargs["torch_dtype"] = torch.float32
 
     model = AutoModelForCausalLM.from_pretrained(args.base_model, **model_kwargs)
 
