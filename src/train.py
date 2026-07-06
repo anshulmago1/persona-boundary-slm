@@ -176,7 +176,7 @@ def _train_sft_unsloth(args, rows: List[Dict]) -> None:
         random_state=args.seed,
     )
     ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = _make_sft_trainer(model, tokenizer, ds, args, bf16=True, peft_config=None)
+    trainer = _make_sft_trainer(model, tokenizer, ds, args, peft_config=None)
     trainer.train()
     _save(model, tokenizer, args.output)
 
@@ -193,16 +193,18 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
 
     model_kwargs: Dict = {}
     if device == "cuda":
-        # 4-bit QLoRA via bitsandbytes.
+        # 4-bit QLoRA via bitsandbytes. Compute dtype must match GPU: bf16 on Ampere+,
+        # fp16 on older cards like the T4 (SM 7.5).
         from transformers import BitsAndBytesConfig
 
+        compute_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
         model_kwargs["quantization_config"] = BitsAndBytesConfig(
             load_in_4bit=True,
             bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_compute_dtype=compute_dtype,
             bnb_4bit_use_double_quant=True,
         )
-        model_kwargs["torch_dtype"] = torch.bfloat16
+        model_kwargs["torch_dtype"] = compute_dtype
     else:
         # MPS / CPU: no bitsandbytes. Plain LoRA; bf16 on MPS, fp32 on CPU.
         model_kwargs["torch_dtype"] = torch.bfloat16 if device == "mps" else torch.float32
@@ -218,21 +220,26 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
         target_modules=LORA_TARGETS,
     )
     ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = _make_sft_trainer(
-        model, tokenizer, ds, args, bf16=(device == "cuda"), peft_config=peft_config
-    )
+    trainer = _make_sft_trainer(model, tokenizer, ds, args, peft_config=peft_config)
     trainer.train()
     _save(trainer.model, tokenizer, args.output)
 
 
-def _make_sft_trainer(model, tokenizer, ds, args, bf16: bool, peft_config=None):
-    """Build an SFTTrainer that works across TRL versions.
+def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
+    """Build an SFTTrainer that works across TRL versions and GPU generations.
 
     TRL renames arguments between releases (tokenizer->processing_class,
     max_seq_length->max_length, and dataset_text_field moved onto SFTConfig). Rather than
-    pin a version, inspect the installed signatures and pass only what they accept."""
+    pin a version, inspect the installed signatures and pass only what they accept.
+
+    Precision: bf16 needs Ampere+ (SM 8.0). Older GPUs like the T4 (SM 7.5) only support
+    fp16, so pick fp16 there — bf16=True would fail training-arg validation."""
     import inspect
+    import torch
     from trl import SFTTrainer, SFTConfig
+
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    use_fp16 = torch.cuda.is_available() and not use_bf16
 
     cfg_params = set(inspect.signature(SFTConfig.__init__).parameters)
     cfg_kw = {
@@ -245,7 +252,8 @@ def _make_sft_trainer(model, tokenizer, ds, args, bf16: bool, peft_config=None):
         "lr_scheduler_type": "cosine",
         "logging_steps": 10,
         "save_strategy": "epoch",
-        "bf16": bf16,
+        "bf16": use_bf16,
+        "fp16": use_fp16,
         "report_to": "none",
         "seed": args.seed,
     }
