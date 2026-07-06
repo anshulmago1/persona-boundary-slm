@@ -28,3 +28,4 @@ checkpoints/
 
 # Assignment spec PDF — not ours to redistribute publicly
 Train Your Own Small Learning Model.pdf
+data/full_run.log
