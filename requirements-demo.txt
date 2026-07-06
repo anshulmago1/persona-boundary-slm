@@ -1,0 +1,8 @@
+# Inference-demo deps (src/demo.py). Needs the model stack + Gradio.
+# On a GPU box you already have the requirements-train.txt stack; add gradio.
+gradio>=4.44.0
+transformers>=4.44.0
+torch>=2.4.0
+peft>=0.12.0
+accelerate>=0.33.0
+huggingface_hub>=0.24.0

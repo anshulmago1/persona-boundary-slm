@@ -1,0 +1,8 @@
+# Local pipeline deps (data generation, config building, eval orchestration).
+# Runs on CPU / Apple Silicon. Use a Python 3.11 venv (3.14 is too new for the ML stack).
+openai>=1.40.0
+pyyaml>=6.0
+python-dotenv>=1.0.1
+tqdm>=4.66.0
+tenacity>=8.3.0
+pydantic>=2.7.0
