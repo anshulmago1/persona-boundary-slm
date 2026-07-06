@@ -105,7 +105,8 @@ class HFChatBackend(ChatBackend):
         messages.append({"role": "user", "content": user})
 
         inputs = self._tok.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt"
+            messages, add_generation_prompt=True, return_tensors="pt",
+            enable_thinking=False,  # Qwen3: no <think> block; stay in-character directly
         ).to(self._model.device)
         with torch.no_grad():
             out = self._model.generate(
@@ -137,7 +138,7 @@ class OpenAIChatBackend(ChatBackend):
 def build_backend(args) -> ChatBackend:
     if args.responder == "openai":
         return OpenAIChatBackend(model=args.model)
-    base = args.base_model or os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B-Instruct")
+    base = args.base_model or os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B")
     adapter = args.adapter
     if args.responder == "tuned" and not adapter:
         adapter = os.getenv("TUNED_MODEL", "outputs/persona-boundary-qlora")

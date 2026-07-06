@@ -107,7 +107,8 @@ class HFResponder(Responder):
             {"role": "user", "content": question},
         ]
         inputs = self._tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt"
+            messages, add_generation_prompt=True, return_tensors="pt",
+            enable_thinking=False,  # Qwen3: no <think> block; stay in-character directly
         ).to(self._model.device)
         with torch.no_grad():
             out = self._model.generate(
@@ -128,7 +129,7 @@ def build_responder(kind: str, **kwargs) -> Responder:
     if kind == "openai":
         return OpenAIResponder(**{k: v for k, v in kwargs.items() if k in ("model", "label")})
     if kind in ("base", "tuned", "hf"):
-        base = kwargs.get("base_model") or os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B-Instruct")
+        base = kwargs.get("base_model") or os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B")
         adapter = kwargs.get("adapter_path")
         if kind == "tuned" and not adapter:
             adapter = os.getenv("TUNED_MODEL", "outputs/persona-boundary-qlora")

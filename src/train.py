@@ -32,7 +32,7 @@ from typing import Dict, List, Optional
 import src.paths  # noqa: F401  (sys.path bootstrap + ensures dirs exist)
 from src.paths import FILTERED_DIR
 
-DEFAULT_BASE = os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B-Instruct")
+DEFAULT_BASE = os.getenv("BASE_MODEL", "Qwen/Qwen3-1.7B")
 DEFAULT_OUTPUT = os.getenv("TUNED_MODEL", os.path.join("outputs", "persona-boundary-qlora"))
 
 # LoRA target modules for Qwen/Llama-family attention + MLP projections.
@@ -129,7 +129,9 @@ def _render_texts(rows: List[Dict], tokenizer) -> List[str]:
     """Render each conversation to a single training string via the model's chat template
     (identical to how it is presented at inference by src/responders.py)."""
     return [
-        tokenizer.apply_chat_template(r["messages"], tokenize=False, add_generation_prompt=False)
+        tokenizer.apply_chat_template(
+            r["messages"], tokenize=False, add_generation_prompt=False, enable_thinking=False
+        )
         for r in rows
     ]
 
