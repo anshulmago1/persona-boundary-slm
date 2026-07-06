@@ -142,13 +142,15 @@ def train_sft(args) -> None:
     device = detect_device()
     print(f"[train] SFT on {len(rows)} examples | base={args.base_model} | device={device}")
 
-    # -- Fast path: Unsloth (CUDA only). --
-    if device == "cuda":
+    # -- Fast path: Unsloth (CUDA only). Fall back to plain TRL+PEFT on ANY failure
+    #    (missing install, or version/env incompatibility) so a run always completes. --
+    if device == "cuda" and not args.no_unsloth:
         try:
             _train_sft_unsloth(args, rows)
             return
-        except ImportError:
-            print("[train] Unsloth not installed; falling back to TRL + PEFT.")
+        except Exception as e:  # noqa: BLE001 - fall back rather than abort the run
+            print(f"[train] Unsloth path failed ({type(e).__name__}: {e}); "
+                  "falling back to TRL + PEFT + bitsandbytes.")
 
     _train_sft_trl(args, rows, device)
 
@@ -156,7 +158,6 @@ def train_sft(args) -> None:
 def _train_sft_unsloth(args, rows: List[Dict]) -> None:
     from unsloth import FastLanguageModel
     from datasets import Dataset
-    from trl import SFTTrainer, SFTConfig
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.base_model,
@@ -175,12 +176,7 @@ def _train_sft_unsloth(args, rows: List[Dict]) -> None:
         random_state=args.seed,
     )
     ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = SFTTrainer(
-        model=model,
-        tokenizer=tokenizer,
-        train_dataset=ds,
-        args=_sft_config(SFTConfig, args, bf16=True),
-    )
+    trainer = _make_sft_trainer(model, tokenizer, ds, args, bf16=True, peft_config=None)
     trainer.train()
     _save(model, tokenizer, args.output)
 
@@ -190,7 +186,6 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
     from datasets import Dataset
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import LoraConfig
-    from trl import SFTTrainer, SFTConfig
 
     tokenizer = AutoTokenizer.from_pretrained(args.base_model)
     if tokenizer.pad_token is None:
@@ -223,34 +218,56 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
         target_modules=LORA_TARGETS,
     )
     ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = SFTTrainer(
-        model=model,
-        tokenizer=tokenizer,
-        train_dataset=ds,
-        peft_config=peft_config,
-        args=_sft_config(SFTConfig, args, bf16=(device == "cuda")),
+    trainer = _make_sft_trainer(
+        model, tokenizer, ds, args, bf16=(device == "cuda"), peft_config=peft_config
     )
     trainer.train()
     _save(trainer.model, tokenizer, args.output)
 
 
-def _sft_config(SFTConfig, args, bf16: bool):
-    return SFTConfig(
-        output_dir=args.output,
-        num_train_epochs=args.epochs,
-        per_device_train_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.lr,
-        warmup_ratio=0.03,
-        lr_scheduler_type="cosine",
-        logging_steps=10,
-        save_strategy="epoch",
-        bf16=bf16,
-        max_seq_length=args.max_seq_len,
-        dataset_text_field="text",
-        report_to="none",
-        seed=args.seed,
-    )
+def _make_sft_trainer(model, tokenizer, ds, args, bf16: bool, peft_config=None):
+    """Build an SFTTrainer that works across TRL versions.
+
+    TRL renames arguments between releases (tokenizer->processing_class,
+    max_seq_length->max_length, and dataset_text_field moved onto SFTConfig). Rather than
+    pin a version, inspect the installed signatures and pass only what they accept."""
+    import inspect
+    from trl import SFTTrainer, SFTConfig
+
+    cfg_params = set(inspect.signature(SFTConfig.__init__).parameters)
+    cfg_kw = {
+        "output_dir": args.output,
+        "num_train_epochs": args.epochs,
+        "per_device_train_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "learning_rate": args.lr,
+        "warmup_ratio": 0.03,
+        "lr_scheduler_type": "cosine",
+        "logging_steps": 10,
+        "save_strategy": "epoch",
+        "bf16": bf16,
+        "report_to": "none",
+        "seed": args.seed,
+    }
+    if "dataset_text_field" in cfg_params:
+        cfg_kw["dataset_text_field"] = "text"
+    # sequence-length cap: renamed max_seq_length -> max_length across TRL versions
+    if "max_seq_length" in cfg_params:
+        cfg_kw["max_seq_length"] = args.max_seq_len
+    elif "max_length" in cfg_params:
+        cfg_kw["max_length"] = args.max_seq_len
+    config = SFTConfig(**{k: v for k, v in cfg_kw.items() if k in cfg_params})
+
+    trainer_params = set(inspect.signature(SFTTrainer.__init__).parameters)
+    tr_kw = {"model": model, "train_dataset": ds, "args": config}
+    if peft_config is not None and "peft_config" in trainer_params:
+        tr_kw["peft_config"] = peft_config
+    # tokenizer arg renamed to processing_class in newer TRL
+    if "processing_class" in trainer_params:
+        tr_kw["processing_class"] = tokenizer
+    elif "tokenizer" in trainer_params:
+        tr_kw["tokenizer"] = tokenizer
+    return SFTTrainer(**tr_kw)
 
 
 # --------------------------------------------------------------------------- #
@@ -346,6 +363,8 @@ def main() -> None:
     ap.add_argument("--output", default=DEFAULT_OUTPUT)
     ap.add_argument("--check", action="store_true",
                     help="validate the dataset and exit (no torch needed)")
+    ap.add_argument("--no-unsloth", action="store_true",
+                    help="skip the Unsloth fast path; use plain TRL+PEFT+bitsandbytes QLoRA")
 
     ap.add_argument("--epochs", type=float, default=3.0)
     ap.add_argument("--batch-size", type=int, default=2)
