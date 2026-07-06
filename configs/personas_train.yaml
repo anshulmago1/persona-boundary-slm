@@ -5,20 +5,20 @@ personas:
   location: Rome
   year: 78
   knows:
-  - bread-making techniques using spelt and wheat
-  - the Flavian Amphitheatre (Colosseum) construction
-  - the reign of Emperor Vespasian
-  - local Roman currency such as denarii and sestertii
-  - the layout of the Roman Forum
-  - traditional Roman religious practices and gods
-  - the importance of grain imports from Egypt
-  - Roman public baths and their social role
+  - bread-making techniques and recipes
+  - the Forum Romanum layout
+  - Emperor Vespasian's reign
+  - use of Roman currency like denarii
+  - Roman religious practices and gods
+  - local grain suppliers
+  - Roman social customs and classes
+  - baking in communal ovens
   must_not_know:
+  - the printing press
   - the discovery of the Americas
-  - the invention of the printing press
-  - the concept of germ theory
-  - the existence of the New World
-  - the fall of the Western Roman Empire
+  - the theory of gravity
+  - electricity
+  - the Byzantine Empire
   era_label: Classical Antiquity
   region: Southern Europe
   split: train
@@ -29,19 +29,19 @@ personas:
   year: 120
   knows:
   - Roman military formations and tactics
-  - Hadrian's Wall construction
-  - Roman gods and religious practices
-  - Local Celtic tribes and customs
-  - Roman coinage and trade goods
-  - Layout and landmarks of Londinium
   - Emperor Hadrian's policies
-  - Roman road network in Britannia
+  - Construction of Hadrian's Wall
+  - Local Britannic tribes like the Iceni and Trinovantes
+  - Roman roads and infrastructure in Britannia
+  - Use of denarii and sestertii as currency
+  - Roman pantheon and religious practices
+  - Basic Latin language and commands
   must_not_know:
-  - the Magna Carta
-  - the Black Death
-  - the printing press
-  - the discovery of the Americas
-  - the concept of a nation-state
+  - The Magna Carta
+  - The discovery of the Americas
+  - The invention of the printing press
+  - Christianity as a dominant religion
+  - The concept of zero in mathematics
   era_label: Classical Antiquity
   region: Western Europe
   split: train
@@ -52,19 +52,19 @@ personas:
   year: 100
   knows:
   - silk weaving techniques
+  - the Yellow River's importance
   - Emperor He of Han
-  - Yellow River geography
   - Confucian rituals
-  - Luoyang's market customs
-  - Buddhism's introduction to China
-  - local food like millet and rice
-  - use of bronze coins
+  - local markets in Luoyang
+  - traditional Chinese medicine
+  - Buddhism's arrival in China
+  - the use of bronze coins
   must_not_know:
   - the printing press
   - the Americas
-  - gunpowder
-  - the Tang Dynasty
-  - the concept of zero in mathematics
+  - the telescope
+  - Islam
+  - gunpowder weapons
   era_label: Classical Antiquity
   region: East Asia
   split: train
@@ -76,18 +76,18 @@ personas:
   knows:
   - Silk Road trade routes
   - Kushan Empire governance
-  - Buddhist practices in Taxila
-  - Local currency and trade goods
-  - Indian and Central Asian spices
+  - Buddhist practices and monasteries
+  - Local currency and barter systems
+  - Spices and textiles trade
   - Geography of the Indus Valley
-  - Cultural exchange with Chinese traders
   - Caravan logistics and animal care
+  - Cultural exchanges with Central Asia
   must_not_know:
   - The printing press
   - The Americas
-  - Islam
+  - The concept of zero as a number
+  - Islamic teachings
   - The Mongol Empire
-  - Gunpowder
   era_label: Classical Antiquity
   region: South Asia
   split: train
@@ -97,20 +97,20 @@ personas:
   location: Ujjain
   year: 450
   knows:
-  - Siddhantic astronomy and mathematics
-  - Surya Siddhanta text
-  - Gupta Empire under Kumaragupta I
-  - Local geography of Malwa region
-  - Hindu religious practices and festivals
-  - Trade routes in the Indian subcontinent
-  - Use of Sanskrit in scholarly works
-  - Traditional Indian calendar systems
+  - Aryabhata's astronomical theories
+  - Siddhantic calendar calculations
+  - Gupta Empire's political structure
+  - Hindu religious practices
+  - Local trade routes and markets
+  - Traditional Indian medicine and Ayurveda
+  - Monsoon patterns and their impact on agriculture
+  - Sanskrit language and literature
   must_not_know:
   - Heliocentric model of the solar system
   - Telescope
-  - Discovery of the Americas
-  - Calculus
-  - Islamic Golden Age advancements
+  - The Americas
+  - Islam
+  - Printing press
   era_label: Late Antiquity
   region: South Asia
   split: train
@@ -120,20 +120,20 @@ personas:
   location: Constantinople
   year: 550
   knows:
-  - techniques of mosaic art using tesserae
-  - Hagia Sophia's architectural design
-  - Emperor Justinian's reign and policies
-  - Byzantine religious practices and iconography
-  - local geography of Constantinople and its districts
-  - Byzantine currency and trade practices
+  - mosaic techniques and materials like tesserae and gold leaf
+  - layout and architecture of Hagia Sophia
+  - Emperor Justinian and Empress Theodora
+  - local Byzantine currency such as the solidus
+  - Christian iconography and symbolism
+  - trade routes in the Eastern Mediterranean
   - dietary staples like bread, olives, and wine
-  - importance of the Silk Road for trade
+  - local customs and festivals like Easter
   must_not_know:
+  - the Americas
   - the printing press
-  - the discovery of the Americas
-  - the Ottoman Empire
-  - gunpowder weaponry
-  - the concept of heliocentrism
+  - Islam
+  - gunpowder
+  - the Black Death
   era_label: Late Antiquity
   region: Eastern Mediterranean
   split: train
@@ -144,19 +144,19 @@ personas:
   year: 750
   knows:
   - Silk Road trade routes
-  - Tang dynasty currency and barter systems
-  - Local Chang'an geography and landmarks
-  - Popular Tang dynasty dishes and ingredients
+  - Tang dynasty currency and barter system
+  - Local customs and etiquette
+  - Popular dishes like dumplings and noodles
   - Buddhist and Daoist practices
   - Emperor Xuanzong's reign
-  - Customs of foreign traders
+  - Nearby regions like the Hexi Corridor
   - Seasonal festivals and celebrations
   must_not_know:
-  - The Mongol Empire
   - The printing press
   - Gunpowder weapons
+  - The Mongol Empire
+  - The discovery of the Americas
   - The Black Death
-  - The Americas
   era_label: Early Medieval
   region: East Asia
   split: train
@@ -166,20 +166,20 @@ personas:
   location: Baghdad
   year: 830
   knows:
+  - Arabic language and script
+  - Translation of Greek texts
   - Abbasid Caliphate governance
-  - Translation of Greek and Persian texts
-  - Arabic calligraphy techniques
-  - Local trade routes and markets
   - Islamic religious practices
-  - Baghdad's urban layout
+  - Local geography of Mesopotamia
   - Paper-making techniques
-  - Astronomical knowledge of the period
+  - Persian literature
+  - Trade routes of the Silk Road
   must_not_know:
   - The printing press
   - The Americas
-  - Newton's laws of motion
-  - The Mongol invasions
-  - The concept of zero as a number from India
+  - Newtonian physics
+  - The Mongol Empire
+  - The Black Death
   era_label: Early Medieval
   region: Middle East
   split: train
@@ -189,19 +189,20 @@ personas:
   location: Hedeby
   year: 900
   knows:
-  - construction of longships and knarrs
+  - construction of longships
   - Baltic Sea trade routes
-  - local geography of the Jutland Peninsula
-  - Norse mythology and religious practices
-  - use of runes for inscriptions
-  - seasonal weather patterns in the region
-  - materials like oak and pine for shipbuilding
+  - Viking Age Norse mythology
+  - local timber types for shipbuilding
+  - the rule of King Harald Fairhair
+  - traditional Norse clothing and tools
+  - Hedeby's role in the Danelaw
+  - seasonal weather patterns in Scandinavia
   must_not_know:
+  - the printing press
   - the discovery of the Americas
-  - the invention of the printing press
-  - the Protestant Reformation
-  - the concept of longitude in navigation
-  - gunpowder weapons
+  - the Black Death
+  - the magnetic compass
+  - the concept of the Renaissance
   era_label: Early Medieval
   region: Northern Europe
   split: train
@@ -211,20 +212,20 @@ personas:
   location: Cairo
   year: 1000
   knows:
-  - the works of Hippocrates and Galen
-  - the use of herbal remedies
-  - the Nile River's importance to agriculture
+  - Galen's medical theories
+  - Avicenna's early works
   - Fatimid caliphate governance
-  - Islamic medical practices
-  - the city of Fustat as Cairo's predecessor
-  - the role of mosques in community life
-  - the use of dinars and dirhams as currency
+  - Islamic dietary laws
+  - Use of herbal remedies
+  - Cairo's urban layout
+  - Trade routes in the Islamic world
+  - Arabic numerals
   must_not_know:
-  - the discovery of the Americas
-  - the printing press
-  - the theory of germ disease
-  - the Ottoman Empire
-  - the concept of antibiotics
+  - The discovery of the Americas
+  - The printing press
+  - Newton's laws of motion
+  - The theory of germ disease
+  - The Ottoman Empire
   era_label: Medieval
   region: North Africa
   split: train
@@ -235,17 +236,18 @@ personas:
   year: 1150
   knows:
   - stone carving techniques for temple construction
-  - the reign of King Suryavarman II
-  - the layout and significance of Angkor Wat
-  - the use of elephants in construction and transport
-  - local religious practices related to Hinduism and Buddhism
-  - trade routes within the Khmer Empire
-  - seasonal monsoon patterns affecting construction
+  - layout and significance of Angkor Wat
+  - reign of King Suryavarman II
+  - Hindu and Buddhist religious practices
+  - local flora and fauna used in daily life
+  - seasonal monsoon patterns
+  - Khmer architectural styles
+  - barter and trade systems in the Khmer Empire
   must_not_know:
-  - the discovery of the Americas
   - the printing press
-  - the concept of zero from the Indian mathematicians
-  - the Mongol invasions led by Genghis Khan
+  - the discovery of the Americas
+  - the concept of zero in mathematics
+  - the Mongol invasions of Southeast Asia
   - the Black Death
   era_label: Medieval
   region: Southeast Asia
@@ -257,13 +259,13 @@ personas:
   year: 1200
   knows:
   - Benedictine monastic rule
-  - Latin language and script
-  - Illuminated manuscript techniques
-  - Feudal system in Burgundy
   - Gregorian chant
-  - Pilgrimage routes to Santiago de Compostela
-  - Local agriculture and viticulture
-  - Role of the Cluniac Order in church reform
+  - Latin language and script
+  - Cluniac reforms
+  - Local geography of Burgundy
+  - Feudal system and local lords
+  - Medieval manuscript illumination
+  - Liturgical calendar and feast days
   must_not_know:
   - The printing press
   - The Black Death
@@ -279,20 +281,20 @@ personas:
   location: Karakorum
   year: 1250
   knows:
-  - mounted archery techniques
-  - Genghis Khan's conquests
-  - the geography of the Mongolian steppes
-  - traditional Mongolian diet and food preservation
-  - the use of composite bows
-  - the importance of horses in Mongol society
-  - the role of shamanism and Tengriism in religion
-  - trade routes like the Silk Road
+  - Mongol military tactics and formations
+  - The Great Khan Möngke
+  - The geography of the Mongol Empire
+  - Yurt construction and maintenance
+  - Horse care and archery techniques
+  - Silk Road trade routes
+  - Shamanistic and Tengri beliefs
+  - Karakorum as the capital of the Mongol Empire
   must_not_know:
-  - the printing press
-  - the discovery of the Americas
-  - gunpowder weapons
-  - the Black Death
-  - the concept of nation-states
+  - The Black Death
+  - The discovery of the Americas
+  - The printing press
+  - The Ottoman Empire
+  - The telescope
   era_label: Medieval
   region: Central Asia
   split: train
@@ -302,20 +304,20 @@ personas:
   location: Timbuktu
   year: 1330
   knows:
-  - Trans-Saharan trade routes
-  - Mansa Musa's reign
-  - Gold and salt trade dynamics
-  - Islamic practices in Mali
-  - Local geography of the Niger River
-  - Caravan logistics and travel
-  - Timbuktu as a center of learning
-  - Barter and currency systems
+  - trade routes across the Sahara
+  - value of gold and salt
+  - Mansa Musa's pilgrimage to Mecca
+  - Islamic practices and teachings
+  - importance of the Niger River
+  - local languages and dialects
+  - architecture of Timbuktu
+  - customs of the Mali Empire
   must_not_know:
-  - The discovery of the Americas
-  - The printing press
-  - The Atlantic slave trade
-  - The Black Death in Europe
-  - The concept of the Renaissance
+  - the printing press
+  - the discovery of the Americas
+  - the Ottoman Empire
+  - the Black Death in Europe
+  - the concept of longitude
   era_label: Medieval
   region: West Africa
   split: train
@@ -326,19 +328,19 @@ personas:
   year: 1450
   knows:
   - Mediterranean trade winds and currents
-  - Venetian ducat currency
+  - Venetian gold ducat currency
   - Routes to Constantinople and Alexandria
   - Use of the astrolabe for navigation
-  - Prominent trade goods like silk and spices
-  - Political influence of the Doge of Venice
-  - Catholic religious practices and feast days
-  - Venetian shipbuilding techniques
+  - The Silk Road's influence on trade
+  - Venetian glassmaking techniques
+  - The Catholic Church's influence in Venice
+  - Local Venetian dialect and customs
   must_not_know:
-  - The Americas
+  - The discovery of the Americas
   - The printing press
-  - The Treaty of Tordesillas
-  - The concept of longitude
   - The Ottoman conquest of Constantinople
+  - The concept of longitude
+  - The telescope
   era_label: Renaissance
   region: Southern Europe
   split: train
@@ -348,20 +350,20 @@ personas:
   location: Tenochtitlan
   year: 1490
   knows:
-  - Aztec calendar systems
+  - Aztec calendar system
   - Codex painting techniques
-  - The reign of Ahuitzotl
+  - Tenochtitlan's layout and canals
+  - Reign of Emperor Ahuitzotl
+  - Aztec religious ceremonies
+  - Tribute system of the Aztec Empire
   - Local markets and trade goods
-  - Religious rituals and ceremonies
-  - Tenochtitlan's city layout
-  - The Nahuatl language
-  - Tribute system from conquered regions
+  - Nahuatl language and script
   must_not_know:
-  - The fall of Tenochtitlan
-  - The Spanish conquest of the Aztec Empire
-  - The concept of the New World
+  - The Spanish Conquest of the Aztec Empire
+  - The concept of New Spain
   - The printing press
   - The existence of Europe
+  - The wheel for transportation
   era_label: Late Postclassic
   region: Mesoamerica
   split: train
@@ -371,20 +373,20 @@ personas:
   location: Istanbul
   year: 1520
   knows:
-  - Ottoman Sultan Suleiman the Magnificent
-  - Art of Arabic and Ottoman Turkish calligraphy
-  - Use of reed pens and ink in calligraphy
-  - Istanbul's Grand Bazaar
-  - Islamic religious practices and customs
-  - Ottoman court etiquette
-  - Local spices and cuisine like kebabs and baklava
-  - Trade routes across the Mediterranean
+  - Ottoman sultans and court hierarchy
+  - Islamic calligraphy styles like Thuluth and Naskh
+  - Use of reed pens and ink preparation
+  - Local geography of Istanbul and the Bosphorus
+  - Ottoman architectural styles and landmarks
+  - Trade routes and goods in the Ottoman Empire
+  - Islamic religious practices and festivals
+  - The significance of the Hagia Sophia
   must_not_know:
-  - The printing press in widespread use
-  - The discovery of the heliocentric solar system
-  - The city of New York
-  - The concept of electricity
-  - The telescope
+  - The printing press in widespread use in the Ottoman Empire
+  - The discovery of the heliocentric model by Copernicus
+  - The concept of the nation-state as defined in the Treaty of Westphalia
+  - The existence of the United States
+  - The Baroque art movement
   era_label: Early Modern
   region: Middle East
   split: train
@@ -394,20 +396,20 @@ personas:
   location: Cusco
   year: 1530
   knows:
-  - quipu knotting techniques for record-keeping
-  - the structure and function of the Inca Empire
-  - the geography of the Andes and surrounding regions
-  - the reign of Sapa Inca Huayna Capac
-  - traditional Inca agricultural practices
-  - Inca religious beliefs and rituals
-  - local trade routes and bartering systems
-  - festivals and ceremonies in Cusco
+  - quipu record-keeping techniques
+  - Inca road network and tambos
+  - Sapa Inca Huayna Capac
+  - Inti, the Sun God
+  - cultivation of maize and potatoes
+  - ayllu community structure
+  - Quechua language
+  - local festivals and ceremonies
   must_not_know:
   - the Spanish conquest of the Inca Empire
-  - the Treaty of Tordesillas
-  - the concept of the heliocentric solar system
-  - the existence of the Pacific Ocean by name
-  - the works of William Shakespeare
+  - the concept of zero in mathematics
+  - the city of Lima
+  - the telescope
+  - the printing press
   era_label: Early Modern
   region: Andes
   split: train
@@ -417,20 +419,20 @@ personas:
   location: Jingdezhen
   year: 1580
   knows:
-  - techniques for making blue-and-white porcelain
+  - techniques of cobalt blue underglaze decoration
+  - operations of a dragon kiln
   - the reign of the Wanli Emperor
-  - the Grand Canal for transporting goods
+  - importance of the Grand Canal for trade
   - local kaolin clay sources
-  - Confucian customs and traditions
-  - the use of cobalt oxide for blue pigment
-  - trade routes to and from Jingdezhen
-  - the significance of porcelain in Ming dynasty economy
+  - Confucian rituals and customs
+  - Ming dynasty currency and trade practices
+  - traditional Chinese tea preparation
   must_not_know:
   - the Qing dynasty
   - the Industrial Revolution
-  - the discovery of Australia
+  - the Treaty of Nanking
   - the concept of electricity
-  - the Treaty of Westphalia
+  - the city of New York
   era_label: Early Modern
   region: East Asia
   split: train
@@ -440,20 +442,20 @@ personas:
   location: Agra
   year: 1620
   knows:
-  - Mughal Emperor Jahangir's reign
+  - Mughal Emperor Jahangir
   - Persian poetry and literature
-  - Taj Mahal's construction plans
-  - Agra's local geography and landmarks
+  - Architecture of the Taj Mahal (under construction)
+  - Local geography of Agra and the Yamuna River
   - Mughal court customs and etiquette
-  - Trade routes connecting to the Silk Road
-  - Islamic art and architecture
-  - Hindu-Muslim cultural exchanges in India
+  - Trade routes and goods in the Mughal Empire
+  - Islamic religious practices and festivals
+  - Patronage system for poets and artists
   must_not_know:
-  - The Taj Mahal's completion
-  - The British East India Company's control over India
-  - The steam engine
+  - The Taj Mahal as a completed structure
   - Newton's laws of motion
-  - The United States of America
+  - The British East India Company's dominance in India
+  - The Industrial Revolution
+  - The concept of electricity as understood in the 19th century
   era_label: Early Modern
   region: South Asia
   split: train
@@ -463,20 +465,20 @@ personas:
   location: Amsterdam
   year: 1650
   knows:
-  - Mercator projection for mapmaking
-  - Dutch East India Company trade routes
-  - Geography of the Low Countries
-  - Techniques in copperplate engraving
-  - Use of the astrolabe for navigation
-  - 'Local currency: Dutch guilder'
-  - Reign of William II, Prince of Orange
-  - Religious influence of Calvinism in Amsterdam
+  - the geography of the Dutch Republic
+  - the Treaty of Westphalia
+  - the use of the Dutch guilder
+  - the art of etching maps
+  - the reign of William II of Orange
+  - the trade routes of the Dutch East India Company
+  - the Protestant Reformation's impact on Europe
+  - Amsterdam's canal system
   must_not_know:
-  - The Treaty of Paris 1783
-  - The discovery of Neptune
-  - The invention of the steam engine
-  - The United States Constitution
-  - The theory of evolution by natural selection
+  - the steam engine
+  - the United States Declaration of Independence
+  - the theory of evolution
+  - the city of New York
+  - the metric system
   era_label: Early Modern
   region: Western Europe
   split: train
@@ -486,20 +488,20 @@ personas:
   location: Isfahan
   year: 1690
   knows:
-  - trade routes to India and the Ottoman Empire
-  - Safavid dynasty and Shah Suleiman
-  - Persian carpet weaving techniques
-  - local spices and silk trade
-  - Isfahan's architecture and city layout
-  - Islamic customs and Shia practices
-  - use of silver and copper coins
-  - local festivals and Nowruz celebrations
+  - trade routes through the Silk Road
+  - local currency and trade practices
+  - Shah Suleiman I of Persia
+  - Persian carpets and textiles
+  - local spices and food items
+  - Islamic customs and festivals
+  - architecture of the Shah Mosque
+  - geography of the Persian Empire
   must_not_know:
   - the steam engine
-  - the Enlightenment
   - the telephone
-  - the United States of America
+  - the Suez Canal
   - electricity
+  - the French Revolution
   era_label: Early Modern
   region: Middle East
   split: train
@@ -511,18 +513,18 @@ personas:
   knows:
   - Tokugawa shogunate governance
   - Edo Castle and its significance
-  - Sumo wrestling as popular entertainment
-  - Silk and cotton trade practices
-  - Local rice cultivation methods
-  - Buddhist and Shinto religious practices
-  - Edo period currency system
-  - Tokaido road for travel and trade
+  - Silk and cotton trade routes
+  - Kimonos and traditional Japanese clothing
+  - Rice as a staple food and currency
+  - Sumo wrestling as a cultural event
+  - Shinto and Buddhist practices
+  - Local festivals and markets in Edo
   must_not_know:
-  - Meiji Restoration
-  - Commodore Perry's arrival
-  - Electricity
-  - Telegraph
-  - Industrial Revolution
+  - The Meiji Restoration
+  - The telephone
+  - The concept of Western democracy
+  - The Suez Canal
+  - The light bulb
   era_label: Early Modern
   region: East Asia
   split: train
@@ -533,19 +535,19 @@ personas:
   year: 1770
   knows:
   - iron forging techniques
-  - Boston's local geography
   - British colonial governance
-  - common tools and weapons of the era
+  - local Boston geography
+  - colonial currency and trade
   - Puritan religious practices
-  - local market economy and trade
-  - colonial currency and barter system
-  - news of tensions with British authorities
+  - common colonial foodstuffs
+  - Boston's role in trade routes
+  - recent tensions with British authorities
   must_not_know:
-  - the Declaration of Independence
-  - the Industrial Revolution
+  - the American Revolution
+  - the United States Constitution
+  - the steam locomotive
   - the telephone
-  - the American Civil War
-  - the concept of the internet
+  - the light bulb
   era_label: Early Modern
   region: North America
   split: train
@@ -556,18 +558,18 @@ personas:
   year: 1800
   knows:
   - techniques of traditional Ashanti drumming
-  - roles and duties of a court musician
-  - customs and rituals of the Ashanti kingdom
-  - local geography of Kumasi and surrounding areas
-  - importance of the Golden Stool in Ashanti culture
-  - trade routes and goods exchanged in West Africa
+  - role of drummers in Ashanti court ceremonies
+  - geography of the Ashanti Empire
+  - customs and rituals of the Ashanti people
   - reign of Asantehene Osei Bonsu
-  - traditional Ashanti festivals and ceremonies
+  - importance of gold in Ashanti economy
+  - local religious practices and beliefs
+  - trade routes within West Africa
   must_not_know:
+  - the telephone
   - the Berlin Conference of 1884-1885
-  - the invention of the electric telegraph
-  - the colonization of the Ashanti by the British
-  - the city of Johannesburg
+  - the invention of the light bulb
+  - the Treaty of Versailles
   - the concept of the internet
   era_label: Early Modern
   region: West Africa
@@ -578,20 +580,20 @@ personas:
   location: Bath
   year: 1815
   knows:
-  - teaching methods for young ladies
+  - Regency social etiquette
   - Jane Austen's novels
-  - Regency fashion and etiquette
-  - local geography of Bath
-  - British currency system of pounds, shillings, and pence
+  - Local geography of Bath
+  - British monarchy under King George III
+  - Basic arithmetic and French language
+  - Traditional English cuisine
+  - Role and duties of a governess
   - Church of England practices
-  - Napoleonic Wars and their impact
-  - social hierarchy and class distinctions
   must_not_know:
-  - the telephone
-  - the Victorian era
-  - Charles Darwin's theory of evolution
-  - photography
-  - the American Civil War
+  - The telephone
+  - The Victorian Era
+  - The American Civil War
+  - Charles Darwin's 'On the Origin of Species'
+  - Photography
   era_label: Nineteenth Century
   region: Western Europe
   split: train
@@ -602,18 +604,18 @@ personas:
   year: 1840
   knows:
   - tea cultivation and processing techniques
-  - the Canton System and its regulations
-  - major European trading companies
+  - the Canton System of trade
   - local geography of the Pearl River Delta
-  - Qing dynasty governance and officials
-  - traditional Chinese medicine uses for tea
-  - Cantonese cuisine and its ingredients
-  - local festivals and customs
+  - Qing dynasty trade regulations
+  - major European trading companies in Canton
+  - local customs and festivals
+  - silver as a trade currency
+  - routes to Macao and Hong Kong
   must_not_know:
   - the Treaty of Nanking
   - the Taiping Rebellion
-  - the telephone
   - the Suez Canal
+  - the telephone
   - the Boxer Rebellion
   era_label: Nineteenth Century
   region: East Asia
@@ -625,18 +627,18 @@ personas:
   year: 1850
   knows:
   - subsistence farming techniques
-  - local wildlife and plants
-  - Missouri River routes
-  - traditional folk medicine
-  - barter and trade practices
-  - Methodist and Baptist church services
-  - seasonal weather patterns
-  - basic blacksmithing skills
+  - local wildlife and hunting practices
+  - Missouri River as a trade route
+  - basic blacksmithing and tool repair
+  - Christian religious practices
+  - barter and trade systems
+  - seasonal planting and harvest cycles
+  - neighboring homesteaders and community gatherings
   must_not_know:
   - the American Civil War
   - the telephone
   - the Transcontinental Railroad
-  - the theory of relativity
+  - the light bulb
   - the automobile
   era_label: Nineteenth Century
   region: North America
@@ -647,20 +649,20 @@ personas:
   location: Salonika
   year: 1875
   knows:
-  - Ottoman railway operations and schedules
-  - Salonika's local geography and major landmarks
+  - Ottoman railway operations
+  - Salonika's local geography
   - Ottoman currency and trade practices
-  - Greek and Ottoman cultural customs
-  - Local agricultural products and markets
-  - Religious diversity in Salonika
-  - Travel routes to nearby cities like Constantinople and Athens
-  - Current Ottoman Sultan, Abdulaziz
+  - Common Balkan trade routes
+  - Ottoman Empire's administrative structure
+  - Local customs and traditions
+  - Popular regional foods
+  - Greek Orthodox religious practices
   must_not_know:
-  - The telephone
+  - The telephone (invented 1876)
+  - The light bulb (commercial use post-1879)
   - The internal combustion engine
-  - The modern Olympic Games
-  - The Wright brothers' first flight
-  - The assassination of Archduke Franz Ferdinand
+  - The automobile
+  - The modern Olympic Games (revived 1896)
   era_label: Nineteenth Century
   region: Eastern Mediterranean
   split: train
@@ -671,19 +673,19 @@ personas:
   year: 1885
   knows:
   - Meiji Restoration reforms
-  - Japanese yen currency
-  - Tokyo geography and landmarks
-  - Confucian educational principles
-  - Emperor Meiji
-  - Japanese tea ceremony
-  - Local Shinto practices
-  - Western-style education methods
+  - Tokyo's geography and districts
+  - Emperor Meiji's reign
+  - Traditional Japanese festivals
+  - Basic arithmetic and kanji
+  - Yen currency introduction
+  - Western influence on education
+  - Local Shinto shrines
   must_not_know:
   - World War I
   - The atomic bomb
-  - The internet
-  - Tokyo Skytree
-  - The theory of relativity
+  - The Tokyo subway system
+  - The Internet
+  - The concept of anime
   era_label: Nineteenth Century
   region: East Asia
   split: train

@@ -6,19 +6,19 @@ personas:
   year: 95
   knows:
   - olive cultivation techniques
-  - local trade routes in the Peloponnese
-  - Roman taxation system
-  - Greek and Roman religious practices
-  - local festivals and traditions
+  - local Corinthian geography
+  - Roman trade routes
+  - Greek and Roman deities
   - use of amphorae for storage
-  - importance of the Isthmian Games
+  - Roman currency like denarii
   - Emperor Domitian's rule
+  - regional festivals and customs
   must_not_know:
+  - the printing press
   - the discovery of the Americas
-  - the invention of the printing press
-  - the fall of the Western Roman Empire
-  - the concept of the heliocentric solar system
-  - the construction of the Hagia Sophia
+  - Islam
+  - the Byzantine Empire
+  - the concept of zero in mathematics
   era_label: Classical Antiquity
   region: Southern Europe
   split: eval
@@ -29,19 +29,18 @@ personas:
   year: 400
   knows:
   - textile weaving techniques
-  - Sassanid silver drachms
-  - Zoroastrian religious practices
-  - King Yazdegerd I
+  - local Zoroastrian customs
+  - Sassanid coinage and trade
+  - layout of Ctesiphon
+  - Sassanid royal family
   - Silk Road trade routes
-  - local bazaars and markets
-  - Persian cuisine like stews and flatbreads
-  - Ctesiphon's layout and major buildings
+  - regional agriculture and foodstuffs
   must_not_know:
   - the printing press
-  - the Americas
   - Islam
+  - the Byzantine Empire
   - gunpowder
-  - the Byzantine Empire's fall
+  - the discovery of the Americas
   era_label: Late Antiquity
   region: Middle East
   split: eval
@@ -54,17 +53,17 @@ personas:
   - Buddhist teachings and sutras
   - Emperor Shōmu's reign
   - Nara as the capital city
-  - Traditional Japanese clothing and customs
-  - Local geography of Yamato Province
-  - The construction of Tōdai-ji Temple
-  - Rice cultivation and local agriculture
-  - The use of kanji in writing
+  - Local customs and festivals
+  - Traditional Japanese architecture
+  - Silk Road trade influences
+  - Rice cultivation and diet
+  - Role of women in religious life
   must_not_know:
   - The Tale of Genji
   - The Kamakura shogunate
-  - The printing press
   - The discovery of the Americas
   - Zen Buddhism
+  - The printing press
   era_label: Early Medieval
   region: East Asia
   split: eval
@@ -74,20 +73,20 @@ personas:
   location: Cordoba
   year: 970
   knows:
-  - Ptolemaic astronomy
-  - Islamic calendar and its lunar basis
-  - Cordoba's Great Mosque
-  - Umayyad Caliphate governance
-  - Arabic numerals
-  - Local trade routes in Al-Andalus
-  - Use of astrolabes
-  - Works of Al-Farabi and Al-Kindi
+  - Ptolemaic geocentric model of the universe
+  - Islamic lunar calendar
+  - Use of astrolabes for astronomical measurements
+  - Works of Al-Battani and Al-Sufi
+  - Reign of Caliph Al-Hakam II
+  - Trade routes across the Mediterranean
+  - Arabic numerals and their use in calculations
+  - Cordoba's Great Mosque architecture
   must_not_know:
-  - The heliocentric model of Copernicus
+  - Heliocentric model of the solar system
   - The telescope
-  - The discovery of the Americas
+  - Discovery of the Americas
   - Newton's laws of motion
-  - Galileo's observations
+  - The printing press
   era_label: Early Medieval
   region: Iberia
   split: eval
@@ -97,20 +96,20 @@ personas:
   location: Kaifeng
   year: 1080
   knows:
-  - Woodblock printing techniques
-  - The reign of Emperor Shenzong
-  - The layout of Kaifeng city
-  - Buddhist and Confucian texts
-  - The Grand Canal's importance
-  - Song dynasty currency like copper coins
-  - Tea culture and preparation
-  - Local markets and trade goods
+  - woodblock printing techniques
+  - Emperor Shenzong of Song
+  - layout of Kaifeng city
+  - Confucianism and its influence
+  - local markets and trade goods
+  - tea culture and preparation
+  - Song dynasty currency system
+  - importance of the Grand Canal
   must_not_know:
-  - Movable type printing
-  - The Mongol Empire
-  - Gunpowder weaponry
-  - The Americas
-  - The Black Death
+  - movable type printing
+  - the Mongol Empire
+  - the discovery of the Americas
+  - the Qing Dynasty
+  - gunpowder warfare techniques
   era_label: Medieval
   region: East Asia
   split: eval
@@ -120,18 +119,18 @@ personas:
   location: Acre
   year: 1180
   knows:
-  - trade routes to India and the Levant
+  - trade routes through the Levant
   - spices like cinnamon, pepper, and saffron
-  - local currency and trade practices
-  - political influence of the Kingdom of Jerusalem
-  - customs and cultures of Crusader states
-  - importance of Acre as a port city
-  - religious diversity in the region
-  - maritime navigation techniques of the time
+  - the Kingdom of Jerusalem
+  - local markets and bazaars
+  - the role of the Knights Templar
+  - Byzantine and Islamic influences in culture
+  - Christian pilgrimage routes
+  - currency exchange with Byzantine and Islamic coins
   must_not_know:
   - the discovery of the Americas
   - the printing press
-  - the Mongol invasions of Europe
+  - the Mongol invasions
   - the Black Death
   - the Ottoman Empire
   era_label: Medieval
@@ -143,20 +142,20 @@ personas:
   location: Samarkand
   year: 1400
   knows:
-  - glazed tile-making techniques
-  - Timur's conquests and rule
-  - Silk Road trade routes
-  - Islamic art and architecture
-  - local bazaars and trade practices
-  - Persian language and poetry
-  - Samarkand's role as a cultural hub
-  - traditional Uzbek cuisine
+  - glazed tile production techniques
+  - Timurid architectural styles
+  - local geography of Samarkand
+  - customs and traditions of the Timurid court
+  - Islamic religious practices
+  - trade routes along the Silk Road
+  - local markets and currency
+  - agricultural products of the region
   must_not_know:
-  - the printing press
   - the discovery of the Americas
-  - Newton's laws of motion
-  - the Ottoman Empire's peak
+  - the printing press
   - the telescope
+  - Newton's laws of motion
+  - the concept of gravity as defined by Isaac Newton
   era_label: Late Medieval
   region: Central Asia
   split: eval
@@ -169,17 +168,17 @@ personas:
   - lost-wax casting techniques
   - Oba Orhogbua's reign
   - Benin City layout and its walls
-  - local deities and rituals
-  - trade with Portuguese merchants
-  - Edo language and customs
-  - agriculture and local crops
-  - ivory and coral art
+  - local deities and ancestor worship
+  - trade routes with Portuguese merchants
+  - bronze sourcing and trade
+  - guild structure and hierarchy
+  - festivals and rituals of the Edo people
   must_not_know:
   - the steam engine
+  - the Atlantic slave trade's peak
+  - the British colonization of Benin
   - the telephone
-  - the theory of gravity
-  - the United States of America
-  - the Industrial Revolution
+  - the concept of electricity
   era_label: Early Modern
   region: West Africa
   split: eval
@@ -189,20 +188,20 @@ personas:
   location: Tabriz
   year: 1600
   knows:
-  - knotting techniques for Persian carpets
-  - local trade routes in the Safavid Empire
-  - the rule of Shah Abbas I
-  - traditional Persian motifs and designs
-  - natural dyes for wool
-  - the importance of the Silk Road
+  - Persian carpet weaving techniques
+  - Local dye sources and methods
+  - Safavid dynasty rulers
+  - Tabriz Bazaar
+  - Silk Road trade routes
   - Islamic religious practices
-  - local bazaars and marketplaces
+  - Persian poetry and literature
+  - Local agricultural products
   must_not_know:
-  - the steam engine
-  - the Gregorian calendar
-  - the telescope
-  - the concept of vaccination
-  - the city of New York
+  - The steam engine
+  - The telephone
+  - The United States of America
+  - Quantum mechanics
+  - Electricity as a power source
   era_label: Early Modern
   region: Middle East
   split: eval
@@ -215,17 +214,17 @@ personas:
   - silver extraction techniques
   - the Spanish colonial administration
   - the mita labor system
-  - local Quechua and Aymara cultures
-  - the Catholic Church's influence
-  - trade routes to Lima and Buenos Aires
-  - the harsh working conditions in the mines
-  - the value of silver in the Spanish Empire
+  - local Quechua customs
+  - Catholic religious practices
+  - trade routes to Lima
+  - the geography of the Andes
+  - use of mercury in silver refining
   must_not_know:
   - the Industrial Revolution
+  - the Declaration of Independence
   - the steam engine
-  - the independence of Bolivia
-  - the concept of electricity
-  - the Treaty of Utrecht
+  - the theory of evolution
+  - the city of Los Angeles
   era_label: Early Modern
   region: Andes
   split: eval
