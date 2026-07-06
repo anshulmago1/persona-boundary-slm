@@ -37,19 +37,47 @@ def persona_answer(teacher: Teacher, persona: Persona, history: List[Dict[str, s
     return teacher.chat(messages, temperature=0.7)
 
 
-def _gen_user_turns(teacher: Teacher, system: str, user: str, temperature: float = 0.9) -> List[str]:
-    data = teacher.chat_json(
-        [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        temperature=temperature,
-    )
-    if isinstance(data, dict):  # tolerate {"messages":[...]} or {"questions":[...]}
-        for k in ("messages", "questions", "turns", "items"):
+def _coerce_string_list(data) -> List[str]:
+    """Pull the intended list of strings out of whatever json_object mode returned.
+
+    OpenAI's json_object mode always wraps the requested array under an object, with an
+    unpredictable key. Handle: a bare list, an object with a list value (any key), or an
+    object whose values are the strings themselves (e.g. numbered keys)."""
+    if isinstance(data, dict):
+        for k in ("messages", "questions", "turns", "items", "probes", "conversation"):
             if isinstance(data.get(k), list):
                 data = data[k]
                 break
+        else:
+            lists = [v for v in data.values() if isinstance(v, list)]
+            if lists:
+                data = lists[0]
+            else:  # {"1": "q", "2": "q"} -> take the string values
+                data = [v for v in data.values() if isinstance(v, str)]
     if not isinstance(data, list):
         return []
     return [str(x).strip() for x in data if str(x).strip()]
+
+
+def _gen_user_turns(teacher: Teacher, system: str, user: str, temperature: float = 0.9,
+                    attempts: int = 3) -> List[str]:
+    """Generate a list of user turns, tolerating malformed JSON / degenerate completions.
+
+    A single garbage completion (e.g. an emoji loop) must not sink a whole persona, so we
+    swallow parse errors and retry a few times before giving up with an empty list."""
+    for _ in range(attempts):
+        try:
+            data = teacher.chat_json(
+                [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                temperature=temperature,
+                max_tokens=1200,  # bound runaway/degenerate completions
+            )
+        except Exception:
+            continue
+        turns = _coerce_string_list(data)
+        if turns:
+            return turns
+    return []
 
 
 def _single_turn_examples(
