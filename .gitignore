@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
+.venv-train/
 venv/
 .env
 
@@ -29,3 +30,17 @@ checkpoints/
 # Assignment spec PDF — not ours to redistribute publicly
 Train Your Own Small Learning Model.pdf
 data/full_run.log
+
+# Row A grader: raw College Board material is copyrighted — keep local, never publish.
+# Regenerable via `python -m src.rowa.scrape` + `parse_pdf` + `build_gold`.
+data/rowa/pdfs/
+data/rowa/*_raw.jsonl
+data/rowa/page_images/
+data/rowa/gold.jsonl
+data/rowa/gold_all.jsonl
+# Result files embed verbatim thesis text; keep the metrics-only CSV (committed).
+data/rowa/eval_results.json
+data/rowa/litmus_gate.json
+data/*.log
+# Publishable (fully synthetic / metrics only): train.jsonl, dpo.jsonl,
+# eval_results.csv, DATASET_CARD.md — these ARE committed.

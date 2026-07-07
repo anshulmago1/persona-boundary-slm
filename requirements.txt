@@ -6,3 +6,6 @@ python-dotenv>=1.0.1
 tqdm>=4.66.0
 tenacity>=8.3.0
 pydantic>=2.7.0
+# Row A scraper/parser: typed PDF text + rendering handwritten scans for gpt-4o vision.
+pdfplumber>=0.11.0
+PyMuPDF>=1.24.0

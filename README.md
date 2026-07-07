@@ -1,80 +1,106 @@
-# Persona Boundary SLM
+# AP World History — Row A Thesis-Point Specialist
 
-A small language model fine-tuned to hold a **knowledge boundary** declared by a persona
-config: given `role`, `location`, `year`, `knows`, and `must_not_know`, it stays in character
-and never references anything past its `year` - including for personas it never saw in
-training, and under adversarial pressure.
+A small open model (**Qwen3-0.6B + LoRA**) fine-tuned to grade **one** analytic rubric
+point — the AP World History LEQ/DBQ **Row A thesis/claim** — better than a prompted
+frontier model.
 
-See [`PersonaBoundary.md`](PersonaBoundary.md) for the full brainlift + behavior spec.
+## The spiky POV
 
-## Behavior spec (the one-sentence pass/fail)
+The industry default is "use the most capable model to grade." But grading a single
+analytic rubric point is a **constraint** problem, not a **capability** problem. A prompted
+frontier model *substitutes its own essay-quality bar*: it silently imports Row-D
+("evaluate the extent / broader analytical framework") criteria onto what is actually a
+binary Row-A decision, and so **false-denies minimal-but-defensible theses that real AP
+readers credit**. Fine-tuning a small model on the literal Row A criterion fixes this.
 
-Given a persona config (`role`, `location`, `year`, `knows`, `must_not_know`), every
-response (1) references **nothing** postdating `year` or listed in `must_not_know`,
-(2) meets out-of-boundary probes with in-character confusion — never a fourth-wall break
-or modern disclaimer, and (3) answers in-boundary questions with substantive, period-plausible
-detail. Holds for **held-out personas** and under adversarial pressure.
+See [`Brainlift.md`](Brainlift.md) for the full argument + literature.
 
-## Setup
+## Behavior Spec (the falsifiable pass/fail)
+
+> Given an AP World History LEQ/DBQ prompt and a candidate thesis, the model returns a
+> single valid JSON object `{"point": 0|1, "reason": "..."}` whose `point` matches the
+> official College Board **Row A** decision — awarding a *minimal-but-defensible* thesis
+> (a plain claim with any one line of reasoning) and denying restatements, off-topic, or
+> non-defensible claims — **without** importing higher-row criteria ("evaluate the extent,"
+> analytical complexity). A stranger can mark any output pass/fail against the official label.
+
+This spec is the data-generation rubric, the eval criterion, and the spiky POV at once.
+
+## The evidence (measured, real data)
+
+On **71 real College Board student theses** (scraped from official 2023–2025 scoring
+commentaries, each with the reader's official Row A decision), same compact prompt:
+
+| grader | agreement | **κ** | false-deny (56) | false-award (15) |
+|---|---|---|---|---|
+| base Qwen3-0.6B (untuned) | 79% | 0.10 | 0 | 14 |
+| **tuned specialist** | **80%** | **0.54** | 13 | 1 |
+| gpt-4o baseline | 69% | 0.38 | 21 | 1 |
+| gpt-4o hardened | 75% | 0.39 | 14 | 4 |
+| gpt-4o decomposed | 82% | 0.49 | 8 | 5 |
+
+**base→tuned: κ 0.10 → 0.54** (data→behavior held) — the tuned 0.6B also **beats every
+prompted gpt-4o** on κ. Separately, the litmus gate: plain gpt-4o denies **~39% of theses
+real readers credited**; hardening helps but can't close it. Full table via `src/rowa/eval.py`.
+
+## Pipeline (`src/rowa/`)
 
 ```bash
-python3.11 -m venv .venv && source .venv/bin/activate   # pipeline stack (CPU is fine)
-pip install -r requirements.txt
-cp .env.example .env   # add your OPENAI_API_KEY (teacher + judge)
+python3.11 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt          # data/eval pipeline (no GPU)
+cp .env.example .env                      # add OPENAI_API_KEY (teacher/judge/frontier)
 ```
-
-`requirements.txt` is the local data/eval pipeline (no GPU). `requirements-train.txt`
-is the GPU training stack (Colab/Modal/RunPod). `requirements-demo.txt` is the Gradio demo.
-
-## Run-book (the full loop)
-
-Wiring is proven end-to-end offline (no key, no GPU) — start here:
 
 ```bash
-bash scripts/smoke_test.sh                 # offline stub: generate→filter→train-check→eval
-DRY_RUN=0 N_PERSONAS=5 bash scripts/smoke_test.sh   # DAY-2 GATE: real, 5 personas (small spend)
+# 1. Scrape official AP Central PDFs (2023-2025 LEQ+DBQ). Raw PDFs stay local (copyright).
+python -m src.rowa.scrape
+
+# 2. Parse: typed rubric examples + scoring commentary (official Row A decisions);
+#    gpt-4o vision transcribes the handwritten student essays. Cross-checks each label
+#    (decision digit vs prose) and flags source contradictions.
+python -m src.rowa.parse_pdf --vision
+
+# 3. Unify + dedup into the gold set (held-out real students = the eval slice).
+python -m src.rowa.build_gold
+
+# 4. Frontier baseline + litmus gate (gpt-4o baseline vs hardened).
+python -m src.rowa.baseline gate
+
+# 5. Synthesize training theses across quality bands; verify labels with the decomposed
+#    (bias-resistant) judge; build SFT + DPO with the compact grader prompt.
+python -m src.rowa.gen_train --per-band 3 --synth-prompts 8
+python -m src.rowa.build_train
+
+# 6. Fine-tune Qwen3-0.6B (LoRA). --check validates the dataset with no GPU.
+#    Runs locally on Apple MPS (fp32 LoRA) or a Colab/CUDA GPU (4-bit QLoRA).
+python -m src.train --data data/rowa/train.jsonl --check
+python -m src.train --data data/rowa/train.jsonl --base-model Qwen/Qwen3-0.6B \
+  --output outputs/rowa-thesis-qlora --epochs 3 --batch-size 1 --grad-accum 16 --max-seq-len 640
+
+# 7. Headline eval: specialist vs gpt-4o (baseline / hardened / decomposed) on real students.
+python -m src.rowa.eval
 ```
 
-Then the real build:
+## Key design decisions
 
-```bash
-# 1. Fill knows/must_not_know from the (role,location,year) seeds; split train/eval.
-python -m src.build_configs
+- **Two-way label validation.** Every scraped student label is confirmed by the commentary's
+  decision digit *and* its prose; disagreements (a known 2023 LEQ2 2C source error) are dropped.
+- **Bias-resistant labeling** ([`judge_rowa.py`](src/rowa/judge_rowa.py)). Synthetic training
+  labels are verified by asking only the rubric's *objective sub-questions* (defensible?
+  responsive? states a reason/categories? restatement?) and computing the decision — never a
+  holistic "award the point?", which would re-import the very bias we're fixing.
+- **Compact prompt.** Specialist trains/runs on a ~110-token keyword prompt (Kucia et al. 2026:
+  concise prompts beat full rubric-text on analytic scoring); the frontier is still given the
+  full hardened rubric.
+- **No leakage.** Synthetic training theses are deduped against the real-student eval slice;
+  the specialist is never trained on what it's tested on.
+- **Copyright.** Raw College Board PDFs/essays are gitignored and never published; only
+  synthetic data, derived labels, and metrics are shareable.
 
-# 2. Generate ~80 conversations/persona (40% protective / 40% in-boundary / 20% mixed).
-python -m src.generate --personas configs/personas_train.yaml \
-  --per-persona 80 --out data/raw/train_raw.jsonl
-
-# 3. Judge-filter to the SFT set (expect ~20-30% rejected) + DPO pairs (stretch).
-python -m src.build_dataset --in data/raw/train_raw.jsonl \
-  --out data/filtered/train.jsonl --dpo data/filtered/dpo_pairs.jsonl
-
-# 4. Build the held-out probe batteries (8 boundary / 4 adversarial / 8 in-boundary each).
-python -m src.probes --personas configs/personas_eval.yaml --out data/eval/probes.jsonl
-
-# 5. Train QLoRA. Locally needs a GPU; the easy path is notebooks/train_colab.ipynb (free T4).
-#    --check validates the dataset with no GPU/torch.
-python -m src.train --data data/filtered/train.jsonl --check
-python -m src.train --data data/filtered/train.jsonl --output outputs/persona-boundary-qlora
-
-# 6. Eval base-vs-tuned on the 10 held-out personas → the headline number.
-python -m src.eval run --responder base  --label base  --out data/eval/base.json
-python -m src.eval run --responder tuned --label tuned --out data/eval/tuned.json \
-  --adapter outputs/persona-boundary-qlora
-python -m src.eval compare --base data/eval/base.json --tuned data/eval/tuned.json
-```
-
-Metrics: **leak_rate** (primary), adversarial_leak_rate (robustness), substance_rate
-(anti-stonewall), integrity_rate — mapped to the Appendix A rubric in the compare table.
-
-## Demo & publish
+## Demo
 
 ```bash
 pip install -r requirements-demo.txt
-python -m src.demo --responder tuned --adapter outputs/persona-boundary-qlora  # config-picker chat UI
-python -m src.demo --responder openai                                          # no-GPU sanity variant
-
-python -m src.push_to_hub dataset --repo <you>/persona-boundary-data
-python -m src.push_to_hub model   --repo <you>/persona-boundary-qwen3-1.7b \
-  --adapter outputs/persona-boundary-qlora
+python -m src.rowa.demo                    # specialist vs gpt-4o, side by side
+python -m src.rowa.demo --no-frontier      # specialist only (no API key)
 ```

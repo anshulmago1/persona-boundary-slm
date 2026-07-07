@@ -27,20 +27,24 @@ def _api(token):
 
 
 def push_dataset(args) -> None:
+    """Publish ONLY the fully-synthetic Row A training data + metrics.
+
+    IMPORTANT: never upload data/rowa/gold*.jsonl or data/rowa/pdfs/ — those contain
+    verbatim College Board text (copyrighted). Only synthetic SFT/DPO + result tables ship.
+    """
     api = _api(args.token)
     api.create_repo(args.repo, repo_type="dataset", exist_ok=True, private=args.private)
-    # Upload configs (train/eval personas) and the filtered data + probe batteries.
-    for folder, path_in_repo in (
-        (CONFIGS_DIR, "configs"),
-        (os.path.join(DATA_DIR, "filtered"), "filtered"),
-        (os.path.join(DATA_DIR, "eval"), "eval"),
-    ):
-        if os.path.isdir(folder):
-            api.upload_folder(
-                folder_path=folder, path_in_repo=path_in_repo,
+    safe = ["train.jsonl", "dpo.jsonl", "eval_results.csv", "DATASET_CARD.md"]
+    rowa = os.path.join(DATA_DIR, "rowa")
+    for name in safe:
+        fp = os.path.join(rowa, name)
+        if os.path.isfile(fp):
+            api.upload_file(
+                path_or_fileobj=fp,
+                path_in_repo=("README.md" if name == "DATASET_CARD.md" else name),
                 repo_id=args.repo, repo_type="dataset",
-                allow_patterns=["*.yaml", "*.jsonl", "*.json", "*.csv"],
             )
+            print(f"[hub] uploaded {name}")
     print(f"[hub] dataset -> https://huggingface.co/datasets/{args.repo}")
 
 
@@ -63,7 +67,7 @@ def main() -> None:
 
     m = sub.add_parser("model")
     m.add_argument("--repo", required=True)
-    m.add_argument("--adapter", default=os.path.join("outputs", "persona-boundary-qlora"))
+    m.add_argument("--adapter", default=os.path.join("outputs", "rowa-thesis-qlora"))
     m.set_defaults(func=push_model)
 
     args = ap.parse_args()

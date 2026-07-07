@@ -22,6 +22,7 @@ import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, TypeVar
 
 try:
@@ -89,6 +90,41 @@ class Teacher:
             messages=messages,
             temperature=self.config.temperature if temperature is None else temperature,
             json_mode=json_mode,
+            max_tokens=max_tokens,
+            model=model or self.config.model,
+        )
+
+    def vision(
+        self,
+        system: str,
+        text: str,
+        image_paths: List[str],
+        max_tokens: int = 2048,
+        model: Optional[str] = None,
+    ) -> str:
+        """Multimodal completion: a text instruction plus one or more images.
+
+        Used to transcribe handwritten AP essay scans (gpt-4o vision). Images are
+        inlined as base64 data URLs, so no upload/hosting is needed.
+        """
+        if self.dry_run:
+            return "[offline vision stub] transcribed essay text."
+        import base64
+
+        content: List[Dict[str, Any]] = [{"type": "text", "text": text}]
+        for pth in image_paths:
+            b64 = base64.b64encode(Path(pth).read_bytes()).decode()
+            content.append(
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}
+            )
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ]
+        return self._chat_with_retry(
+            messages=messages,
+            temperature=0.0,
+            json_mode=False,
             max_tokens=max_tokens,
             model=model or self.config.model,
         )

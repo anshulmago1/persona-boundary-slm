@@ -1,0 +1,6 @@
+grader,n,agreement,kappa,false_denials,false_awards
+base,66,0.788,0.099,0,14
+specialist,71,0.803,0.542,13,1
+frontier-baseline,71,0.69,0.375,21,1
+frontier-hardened,71,0.746,0.389,14,4
+frontier-decomposed,71,0.817,0.488,8,5
