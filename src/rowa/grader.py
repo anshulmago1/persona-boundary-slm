@@ -99,11 +99,13 @@ class LocalGrader:
     """
 
     def __init__(self, base_model: str, adapter_path: Optional[str] = None,
-                 dry_run: bool = False, max_new_tokens: Optional[int] = None):
+                 dry_run: bool = False, max_new_tokens: Optional[int] = None,
+                 threshold: Optional[float] = None):
         self.base_model = base_model
         self.adapter_path = adapter_path
         self.dry_run = dry_run
         self.max_new_tokens = max_new_tokens or int(os.getenv("HF_MAX_NEW_TOKENS", "320"))
+        self.threshold = threshold
         self.model = f"{base_model}+{adapter_path or 'base'}"
         self._m = None
         self._tok = None
@@ -128,6 +130,13 @@ class LocalGrader:
         if self.dry_run:
             return GraderResult(point=1 if len(user) > 400 else 0, reason="offline stub")
         self._load()
+        if self.threshold is not None:
+            probability = self.point_probability(system, user)
+            point = int(probability >= self.threshold)
+            return GraderResult(
+                point=point,
+                reason=f"Calibrated Row A decision (P(point=1)={probability:.3f}).",
+            )
         import torch
 
         enc = self._tok.apply_chat_template(
@@ -152,3 +161,29 @@ class LocalGrader:
             if m:
                 return GraderResult(point=int(m.group(1)), reason=text[:200])
             raise
+
+    def point_probability(self, system: str, user: str) -> float:
+        """Return normalized next-token probability of point=1 versus point=0.
+
+        The model was trained to begin its answer with ``{"point": 0|1``. Forcing that
+        invariant prefix turns generation into a stable binary score, which can be
+        calibrated on a development set without touching the final test set.
+        """
+        if self.dry_run:
+            return 0.75 if len(user) > 400 else 0.25
+        self._load()
+        import torch
+
+        prompt = self._tok.apply_chat_template(
+            [{"role": "system", "content": system}, {"role": "user", "content": user}],
+            tokenize=False, add_generation_prompt=True, enable_thinking=False,
+        ) + '{"point": '
+        enc = self._tok(prompt, return_tensors="pt", add_special_tokens=False)
+        enc = {k: v.to(self._m.device) for k, v in enc.items()}
+        zero = self._tok.encode("0", add_special_tokens=False)
+        one = self._tok.encode("1", add_special_tokens=False)
+        if len(zero) != 1 or len(one) != 1:
+            raise RuntimeError("expected single-token labels for '0' and '1'")
+        with torch.no_grad():
+            logits = self._m(**enc).logits[0, -1, [zero[0], one[0]]]
+        return float(torch.softmax(logits.float(), dim=-1)[1].item())

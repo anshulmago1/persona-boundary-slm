@@ -34,7 +34,13 @@ def push_dataset(args) -> None:
     """
     api = _api(args.token)
     api.create_repo(args.repo, repo_type="dataset", exist_ok=True, private=args.private)
-    safe = ["train.jsonl", "dpo.jsonl", "eval_results.csv", "DATASET_CARD.md"]
+    # Fully-synthetic SFT/DPO (v1 + v2) + the metrics table + the card. NEVER the gold /
+    # real-student theses or PDFs (copyrighted, gitignored, kept local).
+    safe = [
+        "train.jsonl", "dpo.jsonl",
+        "train_v2.jsonl", "dev_v2.jsonl", "dpo_v2.jsonl",
+        "eval_results.csv", "DATASET_CARD.md",
+    ]
     rowa = os.path.join(DATA_DIR, "rowa")
     for name in safe:
         fp = os.path.join(rowa, name)

@@ -26,7 +26,7 @@ from typing import List
 from src.rowa import rubric
 from src.rowa.baseline import load_gold, grade_all, metrics, print_rows
 from src.rowa.grader import FrontierGrader, LocalGrader, GraderResult
-from src.teacher import Teacher
+from src.teacher import Teacher, extract_json
 
 RESULTS = Path("data/rowa/eval_results.json")
 CSV = Path("data/rowa/eval_results.csv")
@@ -76,7 +76,7 @@ def _make(kind: str, args):
         # The untuned base model, well-prompted (compact) — the spec's litmus baseline.
         base = os.getenv("BASE_MODEL", "Qwen/Qwen3-0.6B")
         return ("compact", LocalGrader(base, adapter_path=None, dry_run=args.dry_run))
-    if kind == "specialist":
+    if kind in ("specialist", "specialist-calibrated"):
         base = os.getenv("BASE_MODEL", "Qwen/Qwen3-0.6B")
         adapter = args.adapter or os.getenv("TUNED_MODEL", "outputs/rowa-thesis-qlora")
         # MUST match the prompt the specialist was trained with (compact), or its learned
@@ -94,6 +94,48 @@ def _make(kind: str, args):
     raise ValueError(kind)
 
 
+def _calibration_rows(path: Path) -> list[dict]:
+    rows = []
+    with path.open() as f:
+        for line in f:
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            messages = record["messages"]
+            system = next(m["content"] for m in messages if m["role"] == "system")
+            user = next(m["content"] for m in messages if m["role"] == "user")
+            answer = next(m["content"] for m in messages if m["role"] == "assistant")
+            rows.append({"system": system, "user": user,
+                         "label": int(extract_json(answer)["point"])})
+    return rows
+
+
+def _calibrate(grader: LocalGrader, path: Path) -> dict:
+    """Choose the kappa-maximizing threshold on development data only."""
+    rows = _calibration_rows(path)
+    scored = [(grader.point_probability(r["system"], r["user"]), r["label"]) for r in rows]
+    values = sorted(set(score for score, _ in scored))
+    candidates = [0.0, 1.0]
+    candidates += [(a + b) / 2 for a, b in zip(values, values[1:])]
+    candidates += values
+
+    best = None
+    for threshold in candidates:
+        metric_rows = [
+            {"point": int(score >= threshold), "label": label,
+             "agree": int(score >= threshold) == label, "subset": "dev"}
+            for score, label in scored
+        ]
+        m = metrics(metric_rows)
+        key = (m["kappa_overall"], m["agreement_overall"], -abs(threshold - 0.5))
+        if best is None or key > best[0]:
+            best = (key, threshold, m)
+    grader.threshold = best[1]
+    print(f"calibrated threshold={best[1]:.4f} on {len(rows)} development rows "
+          f"(kappa={best[2]['kappa_overall']}, agreement={best[2]['agreement_overall']})")
+    return {"threshold": best[1], "n": len(rows), "metrics": best[2]}
+
+
 def run(args):
     items = load_gold(Path(args.gold))
     if args.subset != "all":
@@ -105,6 +147,9 @@ def run(args):
     table, results = [], {}
     for kind in args.graders:
         condition, grader = _make(kind, args)
+        calibration = None
+        if kind == "specialist-calibrated":
+            calibration = _calibrate(grader, Path(args.calibration_data))
         if isinstance(grader, DecomposedGrader):
             rows = _grade_decomposed(grader, items)
         else:
@@ -112,7 +157,7 @@ def run(args):
             rows = grade_all(grader, items, condition, workers=workers)
         m = metrics(rows)
         results[kind] = {"model": getattr(grader, "model", kind), "condition": condition,
-                         "metrics": m, "rows": rows}
+                         "calibration": calibration, "metrics": m, "rows": rows}
         table.append((kind, m))
         if args.show_errors:
             print_rows(rows, f"{kind}", only_wrong=True)
@@ -151,6 +196,8 @@ def main():
     ap.add_argument("--gold", default="data/rowa/gold_all.jsonl")
     ap.add_argument("--subset", default="sample", help="sample | rubric | handported | all")
     ap.add_argument("--adapter", default=None)
+    ap.add_argument("--calibration-data", default="data/rowa/dev_v2.jsonl",
+                    help="development set used only by specialist-calibrated")
     ap.add_argument("--model", default=None, help="frontier model override")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--show-errors", action="store_true")

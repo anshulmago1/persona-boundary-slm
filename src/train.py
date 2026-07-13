@@ -125,40 +125,85 @@ def detect_device() -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _render_texts(rows: List[Dict], tokenizer) -> List[str]:
-    """Render each conversation to a single training string via the model's chat template
-    (identical to how it is presented at inference by src/responders.py)."""
-    return [
+def _tokenize_assistant_only(rows: List[Dict], tokenizer, max_length: int):
+    """Tokenize chats while masking system/user tokens from the loss.
+
+    Qwen3's current chat template does not expose ``{% generation %}``, so TRL's
+    ``assistant_only_loss`` cannot identify response tokens. We locate the response
+    boundary by rendering the messages before the final assistant with
+    ``add_generation_prompt=True``; this is exactly the prefix used at inference.
+    """
+    from datasets import Dataset
+
+    encoded = []
+    for index, row in enumerate(rows):
+        messages = row["messages"]
+        if messages[-1]["role"] != "assistant":
+            raise ValueError(f"row {index}: final message must be assistant")
+        prefix = tokenizer.apply_chat_template(
+            messages[:-1], tokenize=True, return_dict=True,
+            add_generation_prompt=True, enable_thinking=False,
+        )["input_ids"]
+        full = tokenizer.apply_chat_template(
+            messages, tokenize=True, return_dict=True,
+            add_generation_prompt=False, enable_thinking=False,
+        )["input_ids"]
+        if full[:len(prefix)] != prefix:
+            raise ValueError(f"row {index}: chat template response boundary mismatch")
+        if len(prefix) >= max_length:
+            raise ValueError(
+                f"row {index}: prompt alone is {len(prefix)} tokens, exceeding "
+                f"--max-seq-len {max_length}; increase the limit"
+            )
+        full = full[:max_length]
+        labels = [-100] * len(prefix) + full[len(prefix):]
+        if not any(label != -100 for label in labels):
+            raise ValueError(f"row {index}: assistant response was fully truncated")
+        encoded.append({
+            "input_ids": full,
+            "attention_mask": [1] * len(full),
+            "labels": labels,
+        })
+    return Dataset.from_list(encoded)
+
+
+def _full_sequence_dataset(rows: List[Dict], tokenizer):
+    from datasets import Dataset
+    return Dataset.from_dict({"text": [
         tokenizer.apply_chat_template(
-            r["messages"], tokenize=False, add_generation_prompt=False, enable_thinking=False
+            r["messages"], tokenize=False, add_generation_prompt=False,
+            enable_thinking=False,
         )
         for r in rows
-    ]
+    ]})
 
 
 def train_sft(args) -> None:
     rows = read_chat_jsonl(args.data)
     validate_rows(rows)
+    eval_rows = read_chat_jsonl(args.eval_data) if args.eval_data else []
+    if eval_rows:
+        validate_rows(eval_rows)
     device = detect_device()
-    print(f"[train] SFT on {len(rows)} examples | base={args.base_model} | device={device}")
+    objective = "full sequence" if args.full_sequence_loss else "assistant only"
+    print(f"[train] SFT on {len(rows)} examples | validation={len(eval_rows)} | "
+          f"base={args.base_model} | device={device} | loss={objective}")
 
     # -- Fast path: Unsloth (CUDA only). Fall back to plain TRL+PEFT on ANY failure
     #    (missing install, or version/env incompatibility) so a run always completes. --
     if device == "cuda" and not args.no_unsloth:
         try:
-            _train_sft_unsloth(args, rows)
+            _train_sft_unsloth(args, rows, eval_rows)
             return
         except Exception as e:  # noqa: BLE001 - fall back rather than abort the run
             print(f"[train] Unsloth path failed ({type(e).__name__}: {e}); "
                   "falling back to TRL + PEFT + bitsandbytes.")
 
-    _train_sft_trl(args, rows, device)
+    _train_sft_trl(args, rows, eval_rows, device)
 
 
-def _train_sft_unsloth(args, rows: List[Dict]) -> None:
+def _train_sft_unsloth(args, rows: List[Dict], eval_rows: List[Dict]) -> None:
     from unsloth import FastLanguageModel
-    from datasets import Dataset
-
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.base_model,
         max_seq_length=args.max_seq_len,
@@ -175,15 +220,21 @@ def _train_sft_unsloth(args, rows: List[Dict]) -> None:
         use_gradient_checkpointing="unsloth",
         random_state=args.seed,
     )
-    ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = _make_sft_trainer(model, tokenizer, ds, args, peft_config=None)
+    ds = (_full_sequence_dataset(rows, tokenizer) if args.full_sequence_loss
+          else _tokenize_assistant_only(rows, tokenizer, args.max_seq_len))
+    eval_ds = ((_full_sequence_dataset(eval_rows, tokenizer) if args.full_sequence_loss
+                else _tokenize_assistant_only(eval_rows, tokenizer, args.max_seq_len))
+               if eval_rows else None)
+    trainer = _make_sft_trainer(
+        model, tokenizer, ds, eval_ds, args, peft_config=None,
+        tokenized=not args.full_sequence_loss,
+    )
     trainer.train()
     _save(model, tokenizer, args.output)
 
 
-def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
+def _train_sft_trl(args, rows: List[Dict], eval_rows: List[Dict], device: str) -> None:
     import torch
-    from datasets import Dataset
     from transformers import AutoModelForCausalLM, AutoTokenizer
     from peft import LoraConfig
 
@@ -220,13 +271,21 @@ def _train_sft_trl(args, rows: List[Dict], device: str) -> None:
         task_type="CAUSAL_LM",
         target_modules=LORA_TARGETS,
     )
-    ds = Dataset.from_dict({"text": _render_texts(rows, tokenizer)})
-    trainer = _make_sft_trainer(model, tokenizer, ds, args, peft_config=peft_config)
+    ds = (_full_sequence_dataset(rows, tokenizer) if args.full_sequence_loss
+          else _tokenize_assistant_only(rows, tokenizer, args.max_seq_len))
+    eval_ds = ((_full_sequence_dataset(eval_rows, tokenizer) if args.full_sequence_loss
+                else _tokenize_assistant_only(eval_rows, tokenizer, args.max_seq_len))
+               if eval_rows else None)
+    trainer = _make_sft_trainer(
+        model, tokenizer, ds, eval_ds, args, peft_config=peft_config,
+        tokenized=not args.full_sequence_loss,
+    )
     trainer.train()
     _save(trainer.model, tokenizer, args.output)
 
 
-def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
+def _make_sft_trainer(model, tokenizer, ds, eval_ds, args, peft_config=None,
+                      tokenized: bool = False):
     """Build an SFTTrainer that works across TRL versions and GPU generations.
 
     TRL renames arguments between releases (tokenizer->processing_class,
@@ -237,6 +296,9 @@ def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
     fp16, so pick fp16 there — bf16=True would fail training-arg validation."""
     import inspect
     import torch
+    if tokenized:
+        return _make_masked_trainer(model, tokenizer, ds, eval_ds, args, peft_config)
+
     from trl import SFTTrainer, SFTConfig
 
     use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
@@ -258,6 +320,14 @@ def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
         "report_to": "none",
         "seed": args.seed,
     }
+    if eval_ds is not None:
+        cfg_kw.update({
+            "eval_strategy": "epoch",
+            "load_best_model_at_end": True,
+            "metric_for_best_model": "eval_loss",
+            "greater_is_better": False,
+            "save_total_limit": 3,
+        })
     if "dataset_text_field" in cfg_params:
         cfg_kw["dataset_text_field"] = "text"
     # sequence-length cap: renamed max_seq_length -> max_length across TRL versions
@@ -268,7 +338,7 @@ def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
     config = SFTConfig(**{k: v for k, v in cfg_kw.items() if k in cfg_params})
 
     trainer_params = set(inspect.signature(SFTTrainer.__init__).parameters)
-    tr_kw = {"model": model, "train_dataset": ds, "args": config}
+    tr_kw = {"model": model, "train_dataset": ds, "eval_dataset": eval_ds, "args": config}
     if peft_config is not None and "peft_config" in trainer_params:
         tr_kw["peft_config"] = peft_config
     # tokenizer arg renamed to processing_class in newer TRL
@@ -277,6 +347,61 @@ def _make_sft_trainer(model, tokenizer, ds, args, peft_config=None):
     elif "tokenizer" in trainer_params:
         tr_kw["tokenizer"] = tokenizer
     return SFTTrainer(**tr_kw)
+
+
+def _make_masked_trainer(model, tokenizer, ds, eval_ds, args, peft_config=None):
+    """Transformers Trainer over pre-tokenized rows with explicit -100 prompt labels."""
+    import inspect
+    import torch
+    from transformers import DataCollatorForSeq2Seq, Trainer, TrainingArguments
+
+    if peft_config is not None:
+        from peft import get_peft_model
+        model = get_peft_model(model, peft_config)
+
+    use_bf16 = torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+    use_fp16 = torch.cuda.is_available() and not use_bf16
+    params = set(inspect.signature(TrainingArguments.__init__).parameters)
+    kwargs = {
+        "output_dir": args.output,
+        "num_train_epochs": args.epochs,
+        "per_device_train_batch_size": args.batch_size,
+        "per_device_eval_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "learning_rate": args.lr,
+        "warmup_ratio": 0.03,
+        "lr_scheduler_type": "cosine",
+        "logging_steps": 10,
+        "save_strategy": "epoch",
+        "bf16": use_bf16,
+        "fp16": use_fp16,
+        "report_to": "none",
+        "seed": args.seed,
+        "remove_unused_columns": False,
+    }
+    if eval_ds is not None:
+        # Transformers renamed evaluation_strategy -> eval_strategy.
+        strategy_name = "eval_strategy" if "eval_strategy" in params else "evaluation_strategy"
+        kwargs.update({
+            strategy_name: "epoch",
+            "load_best_model_at_end": True,
+            "metric_for_best_model": "eval_loss",
+            "greater_is_better": False,
+            "save_total_limit": 3,
+        })
+    training_args = TrainingArguments(**{k: v for k, v in kwargs.items() if k in params})
+    collator = DataCollatorForSeq2Seq(
+        tokenizer=tokenizer, model=model, padding=True, label_pad_token_id=-100,
+        pad_to_multiple_of=8 if torch.cuda.is_available() else None,
+    )
+    return Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=ds,
+        eval_dataset=eval_ds,
+        data_collator=collator,
+        processing_class=tokenizer,
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -370,10 +495,14 @@ def main() -> None:
                     help="chat-format SFT JSONL")
     ap.add_argument("--base-model", default=DEFAULT_BASE)
     ap.add_argument("--output", default=DEFAULT_OUTPUT)
+    ap.add_argument("--eval-data", default=None,
+                    help="held-out chat JSONL used for eval loss and best-checkpoint selection")
     ap.add_argument("--check", action="store_true",
                     help="validate the dataset and exit (no torch needed)")
     ap.add_argument("--no-unsloth", action="store_true",
                     help="skip the Unsloth fast path; use plain TRL+PEFT+bitsandbytes QLoRA")
+    ap.add_argument("--full-sequence-loss", action="store_true",
+                    help="legacy objective; default masks system/user tokens from loss")
 
     ap.add_argument("--epochs", type=float, default=3.0)
     ap.add_argument("--batch-size", type=int, default=2)

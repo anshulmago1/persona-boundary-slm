@@ -11,6 +11,7 @@ venv/
 data/raw/*.jsonl
 data/filtered/*.jsonl
 data/eval/*.json
+data/eval/*.jsonl
 data/eval/*.csv
 data/smoke/
 !data/**/.gitkeep
@@ -42,5 +43,5 @@ data/rowa/gold_all.jsonl
 data/rowa/eval_results.json
 data/rowa/litmus_gate.json
 data/*.log
-# Publishable (fully synthetic / metrics only): train.jsonl, dpo.jsonl,
-# eval_results.csv, DATASET_CARD.md — these ARE committed.
+# Publishable (fully synthetic / metrics only): train*.jsonl, dev_v2.jsonl, dpo*.jsonl,
+# eval_results.csv, DATASET_CARD.md — these may be committed.

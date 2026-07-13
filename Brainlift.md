@@ -60,10 +60,39 @@ Source Ledger
 
 ## Measured Results (this build)
 
+**Conclusion up front (data→behavior held):** a QLoRA fine-tune of Qwen3-0.6B, trained
+only on config-controlled synthetic data, lifts Row A grading from **κ 0.10 (untuned base)
+to κ 0.54** on 71 held-out real student theses — beating every prompted gpt-4o configuration
+(κ 0.375 / 0.389 / 0.488) at ~1/1000th the size. The target behavior is achieved by the
+dataset, not by prompting, exactly as the spiky POV predicted.
+
 Gold set: **238 officially-labeled theses** scraped from AP Central 2023–2025 LEQ+DBQ
 scoring commentaries (each cross-validated: reader's decision digit vs. prose; one 2023
 LEQ2 2C source contradiction dropped). Headline eval slice = **71 real student theses**,
 held out from all training.
+
+### How the training data was generated and filtered
+
+The specialist is trained on **synthetic theses distilled from a frontier teacher**, not on
+real student essays. The pipeline is built to keep the frontier's essay-quality bias *out* of
+the labels:
+
+1. **Band-conditioned generation** (`src/rowa/gen_train.py`). The teacher writes theses for
+   11 controlled quality bands; the Row A label comes **by construction from the band**, never
+   from a holistic teacher "would you award this?" call (which would re-import the deny-minimal
+   bias). Bands span the earn side (`minimal_earn`, `claim_reason`, `analytic_categories`,
+   `clumsy_earn`, `strong_earn`) and the not-earn side (`restatement`, `no_reasoning`,
+   `not_defensible`, `off_topic`, `overgeneralized`, `eloquent_empty`) — deliberately covering
+   the hard minimal/clumsy earns the frontier wrongly denies and the eloquent-empty leniency trap.
+2. **Bias-resistant verification** (`src/rowa/judge_rowa.py`). Every synthetic thesis is checked
+   by a *decomposed* judge that answers only objective sub-questions (defensible? responsive?
+   states a reason/categories? restatement?) and computes the decision deterministically.
+   Synthetic items are kept only where this judge agrees with the band label; drift is dropped.
+3. **Official anchors** — College Board rubric-example theses are added with their official labels.
+4. **Leakage control** (`src/rowa/build_train.py`) — synthetic theses are deduplicated against
+   the 71 held-out real theses, so nothing tested on appears in training.
+
+Net v1 corpus: **1,020 verified SFT examples** (+ 705 DPO pairs), the data behind the E4 result.
 
 **E2 — the frontier baseline at scale (gpt-4o, not Sonnet):** on the 71 real theses, plain
 gpt-4o denies **21/56 (37.5%) of theses real AP readers credited** (agreement 65%, κ 0.25).
@@ -99,6 +128,28 @@ not a hyperparameter one: the minimal/clumsy-earn bands are under-represented am
 real cases. The fix is more minimal-earn training coverage and the built-but-unrun DPO pass
 (705 pairs pitting the correct call against a Row-D-substitution denial), i.e. stretch rung 1 —
 not tuning the learning rate.
+
+### v1 → v2 dataset iteration
+
+The error analysis drove a **v2 dataset** (built and published; retraining pending compute),
+fixing the failure *in the data* as the spec demands:
+
+- **Contrastive boundary data** (`src/rowa/gen_contrastive.py`): near-identical thesis groups
+  differing only by adding one reason or analytic categories, plus a verified minimal/clumsy
+  positive per group — teaching the earn/deny boundary directly rather than inferring it from
+  unrelated examples. This targets the 13 false-denials head-on.
+- **Prompt-grouped train/dev split**: no LEQ prompt appears in both `train_v2` (1,185) and
+  `dev_v2` (268), so dev loss measures prompt generalization, not memorization.
+- **Assistant-only loss** (mask system/user tokens) and **best-checkpoint selection** by dev
+  loss — v1 trained on the full sequence and simply took the final epoch.
+- **Decision-threshold calibration** on `dev_v2` (never the test set).
+- **Varied, criterion-specific DPO rejections** (1,122 pairs) instead of two repeated stock
+  strings, so preference tuning can't be won by phrase-matching.
+
+The prediction this v2 tests: more minimal/clumsy-earn and contrastive coverage should cut
+the residual false-denials and raise κ above 0.54, with false-awards held near 1. Published
+artifacts: [dataset](https://huggingface.co/datasets/anshulmago1/ap-rowa-thesis-grading) and
+[model](https://huggingface.co/anshulmago1/ap-rowa-thesis-grader-qwen3-0.6b).
 
 **Note on method.** OpenAI's hosted fine-tuning (the "fine-tune gpt-4o-mini" path) was tried as
 an extra frontier-comparison bar but is **deprecated** (403 `training_not_available`), and would
